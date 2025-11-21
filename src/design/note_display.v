@@ -39,7 +39,7 @@ note_rom note_rom_inst(
 );
 
 wire num_pixel_valid;
-wire [7;0] r_num, g_num, b_num;
+wire [7:0] r_num, g_num, b_num;
 char_pixel num_char_pixel(
     .clk(clk),
     .reset(reset),
@@ -57,7 +57,7 @@ char_pixel num_char_pixel(
 );
 
 wire letter_pixel_valid;
-wire [7;0] r_letter, g_letter, b_letter;
+wire [7:0] r_letter, g_letter, b_letter;
 char_pixel letter_char_pixel(
     .clk(clk),
     .reset(reset),
@@ -75,7 +75,7 @@ char_pixel letter_char_pixel(
 );
 
 wire symbol_pixel_valid;
-wire [7;0] r_symbol, g_symbol, b_symbol;
+wire [7:0] r_symbol, g_symbol, b_symbol;
 char_pixel symbol_char_pixel(
     .clk(clk),
     .reset(reset),
