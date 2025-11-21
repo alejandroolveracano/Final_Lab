@@ -25,11 +25,9 @@ module note_player(
     dffre #(6) duration_reg (.clk(clk), .r(reset), .en(duration_en), .d(next_duration), .q(duration));
     
     // note registers
-    wire [5:0] note;
     wire [5:0] next_note;
     dffr #(6) note_reg (.clk(clk), .r(reset), .d(next_note), .q(note));
 
-    wire [5:0] prev_note;
     dffr #(6) display_note_reg (.clk(clk), .r(reset), .d(note), .q(prev_note));     // added for note display module
     
     assign done_with_note = (duration == 6'd0) & beat;
