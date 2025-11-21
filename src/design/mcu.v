@@ -15,7 +15,6 @@ module mcu(
 );
     
     // state registers
-    wire [1:0] state;
     reg [1:0] next_state;
     dffr #(2) state_reg(.clk(clk), .r(reset), .d(next_state), .q(state));
 
