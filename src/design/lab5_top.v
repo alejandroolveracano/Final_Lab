@@ -119,6 +119,9 @@ module lab5_top(
     wire new_frame;
     wire [15:0] codec_sample, flopped_sample;
     wire new_sample, flopped_new_sample;
+    wire [1:0] state;
+    wire [5:0] prev_note;
+    wire [5:0] note;
     music_player #(.BEAT_COUNT(BEAT_COUNT)) music_player(
         .clk(clk_100),
         .reset(reset),
@@ -126,6 +129,9 @@ module lab5_top(
         .next_button(next),
         .new_frame(new_frame), 
         .sample_out(codec_sample),
+        .state(state),         // for state_symbol module
+        .prev_note(prev_note),  // The previous note played (for note display module)
+        .note(note),       // The current note being played (for note display module)
         .new_sample_generated(new_sample)
     );
     dff #(.WIDTH(17)) sample_reg (
@@ -217,6 +223,9 @@ module lab5_top(
         //.valid(valid),
 		.valid(vde),
 		.vsync(vsync),
+        .state(state), 
+        .prev_note(prev_note),  // The previous note played (for note display module)
+        .note(note),      // The current note being played (for note
 		.r(r_1),
 		.g(g_1),
 		.b(b_1)

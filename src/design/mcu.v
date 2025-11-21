@@ -10,6 +10,7 @@ module mcu(
     output play,
     output reset_player,
     output [1:0] song,
+    output [1:0] state,     // for state_symbol module
     input song_done
 );
     

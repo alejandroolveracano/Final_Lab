@@ -7,6 +7,9 @@ module wave_display_top(
     input [9:0]  y,  // [0..1023]     
     input valid,
     input vsync,
+    input [1:0] state,  // from music_player
+    input [5:0] prev_note,  // The previous note played (for note display module)
+    input [5:0] note,       // The current note being played (for note
     output [7:0] r,
     output [7:0] g,
     output [7:0] b
@@ -41,7 +44,8 @@ module wave_display_top(
         .doutb(read_sample)
     );
  
-    wire valid_pixel;
+    wire valid_pixel
+    wire wave_valid;
     wire [7:0] wd_r, wd_g, wd_b;
     wave_display wd(
         .clk(clk),
@@ -52,10 +56,79 @@ module wave_display_top(
         .read_address(read_address),
         .read_value(read_sample),
         .read_index(read_index),
-        .valid_pixel(valid_pixel),
+        .valid_pixel(wave_valid),
         .r(wd_r), .g(wd_g), .b(wd_b)
     );
 
-    assign {r, g, b} = valid_pixel ? {wd_r, wd_g, wd_b} : {3{8'b0}};
+    wire state_valid;
+    wire [7:0] r_state, g_state, b_state;
+    state_symbol state_sym(
+        .clk(clk),
+        .reset(reset),
+        .valid(valid),
+        .state(state),
+        .vga_x(x),
+        .vga_y(y),
+        .r(r),
+        .g(g),
+        .b(b),
+        .valid_px(state_valid)
+    );
+
+    // note player 1 current note display
+    wire np1_cn_valid;
+    wire [7;0] r_np1_cn, g_np1_cn, b_np1_cn;
+    note_display np1_curr_note(
+        .clk(clk),
+        .reset(reset),
+        .note(prev_note),
+        .num_x(11'd100),  // shift right by 100 pixels
+        .num_y(10'd480),
+        .letter_x(11'd108),
+        .letter_y(10'd480),
+        .symbol_x(11'd116),
+        .symbol_y(10'd480),
+        .vga_x(x),  // shift left by 100 pixels
+        .vga_y(y),
+        .valid(valid),
+        .color(24'hFFFFFF),  // white color
+        .r(r_np1_cn),
+        .g(g_np1_cn),
+        .b(b_np1_cn),
+        .valid_px(np1_cn_valid)
+    );
+
+    // note player 1 previous note display
+    wire np1_pn_valid;
+    wire [7;0] r_np1_pn, g_np1_pn, b_np1_pn;
+    note_display np1_prev_note(
+        .clk(clk),
+        .reset(reset),
+        .note(prev_note),
+        .num_x(11'd124),  // shift right by 100 pixels
+        .num_y(10'd480),
+        .letter_x(11'd132),
+        .letter_y(10'd480),
+        .symbol_x(11'd140),
+        .symbol_y(10'd480),
+        .vga_x(x),  // shift left by 100 pixels
+        .vga_y(y),
+        .valid(valid),
+        .color(24'hFFFFFF),  // white color
+        .r(r_np1_pn),
+        .g(g_np1_pn),
+        .b(b_np1_pn),
+        .valid_px(np1_pn_valid)
+    );
+
+    // combine wave and state display
+    assign valid_pixel = wave_valid | state_valid | np1_cn_valid | np1_pn_valid;
+
+    // prioritzes white waveform
+    assign {r, g, b} = valid_pixel ? {wd_r, wd_g, wd_b} | 
+                                     {r_state, g_state, b_state} | 
+                                     {r_np1_cn, g_np1_cn, b_np1_cn} | 
+                                     {r_np1_pn, g_np1_pn, b_np1_pn} : 
+                                     {3{8'b0}};
 
 endmodule

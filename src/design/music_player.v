@@ -20,6 +20,11 @@ module music_player(
 
     // This output must go high for one cycle when a new sample is generated.
     output wire new_sample_generated,
+    
+    output wire [1:0] state,     // for state_symbol module
+
+    output wire [5:0] prev_note,  // The previous note played (for note display module)
+    output wire [5:0] note,       // The current note being played (for note display module)
 
     // Our final output sample to the codec. This needs to be synced to
     // new_frame.
@@ -51,6 +56,7 @@ module music_player(
         .play(play),
         .reset_player(reset_player),
         .song(current_song),
+        .state(state),
         .song_done(song_done)
     );
 
@@ -85,6 +91,10 @@ module music_player(
     wire [15:0] note_sample, note_sample0;
     wire note_sample_ready, note_sample_ready0;
 
+    // for note display module
+    wire [5:0] prev_note;
+    wire [5:0] note;
+
     // These pipeline registers were added to decrease the length of the critical path!
     dffr pipeline_ff_gen_next_sample (.clk(clk), .r(reset), .d(generate_next_sample0), .q(generate_next_sample));
     dffr #(.WIDTH(16)) pipeline_ff_note_sample (.clk(clk), .r(reset), .d(note_sample0), .q(note_sample));
@@ -101,7 +111,9 @@ module music_player(
         .beat(beat),
         .generate_next_sample(generate_next_sample),
         .sample_out(note_sample0),
-        .new_sample_ready(note_sample_ready0)
+        .new_sample_ready(note_sample_ready0),
+        .prev_note(prev_note),
+        .note(note)
     );
       
 //   

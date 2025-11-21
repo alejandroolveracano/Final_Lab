@@ -10,6 +10,8 @@ module note_player(
     input generate_next_sample,  // Tells us when the codec wants a new sample
     output [15:0] sample_out,  // Our sample output
     output new_sample_ready  // Tells the codec when we've got a sample
+    output [5:0] prev_note  // The previous note played (for note display module)****************
+    output [5:0] note  // The current note being played (for note display module)
 );
 
     // Implementation goes here!
@@ -26,6 +28,9 @@ module note_player(
     wire [5:0] note;
     wire [5:0] next_note;
     dffr #(6) note_reg (.clk(clk), .r(reset), .d(next_note), .q(note));
+
+    wire [5:0] prev_note;
+    dffr #(6) display_note_reg (.clk(clk), .r(reset), .d(note), .q(prev_note));     // added for note display module
     
     assign done_with_note = (duration == 6'd0) & beat;
     
