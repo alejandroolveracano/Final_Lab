@@ -10,6 +10,7 @@ module wave_display_top(
     input [1:0] state,  // from music_player
     input [5:0] prev_note,  // The previous note played (for note display module)
     input [5:0] note,       // The current note being played (for note
+    input next_display, //added next_display that is suppose to be the button input to change display types
     output [7:0] r,
     output [7:0] g,
     output [7:0] b
@@ -44,7 +45,7 @@ module wave_display_top(
         .doutb(read_sample)
     );
  
-    wire valid_pixel
+    wire valid_pixel;
     wire wave_valid;
     wire [7:0] wd_r, wd_g, wd_b;
     wave_display wd(
@@ -56,6 +57,7 @@ module wave_display_top(
         .read_address(read_address),
         .read_value(read_sample),
         .read_index(read_index),
+        .next_display(next_display),
         .valid_pixel(wave_valid),
         .r(wd_r), .g(wd_g), .b(wd_b)
     );
@@ -69,15 +71,15 @@ module wave_display_top(
         .state(state),
         .vga_x(x),
         .vga_y(y),
-        .r(r),
-        .g(g),
-        .b(b),
+        .r(r_state),
+        .g(g_state),
+        .b(b_state),
         .valid_px(state_valid)
     );
 
     // note player 1 current note display
     wire np1_cn_valid;
-    wire [7;0] r_np1_cn, g_np1_cn, b_np1_cn;
+    wire [7:0] r_np1_cn, g_np1_cn, b_np1_cn;
     note_display np1_curr_note(
         .clk(clk),
         .reset(reset),
@@ -100,7 +102,7 @@ module wave_display_top(
 
     // note player 1 previous note display
     wire np1_pn_valid;
-    wire [7;0] r_np1_pn, g_np1_pn, b_np1_pn;
+    wire [7:0] r_np1_pn, g_np1_pn, b_np1_pn;
     note_display np1_prev_note(
         .clk(clk),
         .reset(reset),
@@ -130,5 +132,4 @@ module wave_display_top(
                                      {r_np1_cn, g_np1_cn, b_np1_cn} | 
                                      {r_np1_pn, g_np1_pn, b_np1_pn} : 
                                      {3{8'b0}};
-
 endmodule
