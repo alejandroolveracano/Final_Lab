@@ -1,3 +1,9 @@
+`define NORMAL 3'b000
+`define HALF 3'b001
+`define QUARTER 3'b010
+`define HEIGHTMAX 3'b011
+`define WIDTHMAX 3'b100
+
 module wave_display (
     input clk,
     input reset,
@@ -6,6 +12,7 @@ module wave_display (
     input valid,
     input [7:0] read_value,
     input read_index,
+    input next_display,
     output wire [8:0] read_address,
     output wire valid_pixel,
     output wire [7:0] r,
@@ -13,7 +20,8 @@ module wave_display (
     output wire [7:0] b
 );
     //adjusted read_value to fit in newer screen
-    wire [7:0]read_value_adjusted = (read_value >> 1)+ 8'd32;
+    //wire [7:0]read_value_adjusted = (read_value >> 1)+ 8'd32;
+    reg [7:0]read_value_adjusted;//this is a quick fix now the datapath mux will take care of which adjusted value to display*
 
     assign read_address = {read_index, x[9], x[7:1]};
     
@@ -28,7 +36,7 @@ module wave_display (
     dffre #(8) value_ff (.clk(clk), .r(reset), .en(next_addr != prev_addr), .d(read_value_adjusted), .q(prev_val)); 
 
     //validate that the x and y position can have a valid pixel
-    wire x_valid = (x[9:8] == 2'b01) | (x[9:8] == 2'b10);
+    wire x_valid = ((x[9:8] == 2'b01) | (x[9:8] == 2'b10) | (state == `WIDTHMAX)); //this is paired with the `WIDTHMAX read_value_adjusted so that only when in this state it will be a contious sin wave
     wire y_valid = ~y[9];
     
     //bound_valid is what is making sure that the y value is withing the range
@@ -37,8 +45,41 @@ module wave_display (
                        ((y[8:1] <= prev_val) & (y[8:1] >= read_value_adjusted));
     
     //is the combination of all the checks to ensure a the display will display the sin wave              
-    assign valid_pixel = x_valid & y_valid & bound_valid & valid &
-                         x >= 11'b00100000010 & x <= 11'b01011111100;
+    assign valid_pixel = x_valid & y_valid & bound_valid & valid /*&
+                         x >= 11'b00100000010 & x <= 11'b01011111100*/;//**testing to see if x_valid still allows full screen
                          
-    assign {r, g, b} = valid_pixel ? {3{8'hFF}} : {3{8'b0}};                   
+    assign {r, g, b} = valid_pixel ? {3{8'hFF}} : {3{8'b0}};
+    
+    //Here make the mux to choose diffrent button presses
+    //actually it might be better to use switches
+    
+    //FSM to go through the diffrent possible states of the display
+    dffr #(3) global_state(.d(next_state), .q(state), .r(reset), .clk(clk));
+    reg [2:0]next_state;
+    wire [2:0] state; 
+    always @(*)begin
+        case(state)
+            `NORMAL: next_state = next_display ? `HALF : `NORMAL;
+            `HALF: next_state = next_display ? `QUARTER : `HALF;
+            `QUARTER: next_state = next_display ? `HEIGHTMAX : `QUARTER;
+            `HEIGHTMAX: next_state = next_display ? `WIDTHMAX : `HEIGHTMAX;
+            `WIDTHMAX: next_state = next_display ? `NORMAL : `WIDTHMAX;
+            default:next_state = next_display ? `HALF : `NORMAL;
+       endcase 
+    end
+    
+    //datapath for the above 
+    always@(*)begin
+        case(state)
+            `NORMAL: read_value_adjusted = (read_value >> 1)+ 8'd32;
+            `HALF: read_value_adjusted = (read_value >> 2)+ 8'd32;
+            `QUARTER:read_value_adjusted = (read_value >> 3)+ 8'd32;
+            `HEIGHTMAX: read_value_adjusted = read_value << 1;//double check this one, might just be better to bit shift it left
+            `WIDTHMAX: read_value_adjusted = (read_value >> 1)+ 8'd32; // this is paired with x_valid being true when state == WIDTHMAX
+            
+            default: read_value_adjusted = (read_value >> 1)+ 8'd32;
+        endcase
+     end
+        
+                       
 endmodule
