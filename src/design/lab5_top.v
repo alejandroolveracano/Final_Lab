@@ -29,8 +29,8 @@ module lab5_top(
     output wire [2:0] leds_rgb_0,
     output wire [2:0] leds_rgb_1,
 
-    input [2:0] btn,
-
+    input [3:0] btn,//here I adjusted the btn input from 3 bit to 4 bit
+    //input [7:0] sw, // added these 8 switches to see if i could improve on the btn design*
     /* 
     //VGA OUTPUT 
     output [3:0] VGA_R,
@@ -50,7 +50,8 @@ module lab5_top(
 );  
 
     wire reset, play_button, next_button;
-    assign {reset, play_button, next_button} = btn;
+    wire next_display; //added this so it fits with the button*
+    assign {next_display, reset, play_button, next_button} = btn; //added a next display_button to what should be BTN3*
 
     // Clock converter
     wire clk_100, display_clk, serial_clk;
@@ -109,6 +110,15 @@ module lab5_top(
         .reset(reset),
         .in(next_button),
         .out(next)
+    );
+    
+    //bellow is the added button_press_unit*
+    wire display;
+    button_press_unit #(.WIDTH(BPU_WIDTH)) next_display_press_unit(
+        .clk(clk_100),
+        .reset(reset),
+        .in(next_display),
+        .out(display)
     );
        
 //   
@@ -223,9 +233,10 @@ module lab5_top(
         //.valid(valid),
 		.valid(vde),
 		.vsync(vsync),
-        .state(state), 
+		.state(state), 
         .prev_note(prev_note),  // The previous note played (for note display module)
         .note(note),      // The current note being played (for note
+		.next_display(display),//my added input
 		.r(r_1),
 		.g(g_1),
 		.b(b_1)
@@ -258,4 +269,3 @@ module lab5_top(
    
    
 endmodule
-
