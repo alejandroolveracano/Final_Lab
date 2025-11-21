@@ -20,8 +20,7 @@ module wave_display (
     output wire [7:0] b
 );
     //adjusted read_value to fit in newer screen
-    //wire [7:0]read_value_adjusted = (read_value >> 1)+ 8'd32;
-    reg [7:0]read_value_adjusted;//this is a quick fix now the datapath mux will take care of which adjusted value to display*
+    reg [7:0]read_value_adjusted;
 
     assign read_address = {read_index, x[9], x[7:1]};
     
@@ -36,22 +35,23 @@ module wave_display (
     dffre #(8) value_ff (.clk(clk), .r(reset), .en(next_addr != prev_addr), .d(read_value_adjusted), .q(prev_val)); 
 
     //validate that the x and y position can have a valid pixel
-    wire x_valid = ((x[9:8] == 2'b01) | (x[9:8] == 2'b10) | (state == `WIDTHMAX)); //this is paired with the `WIDTHMAX read_value_adjusted so that only when in this state it will be a contious sin wave
+    wire x_valid = ((x[9:8] == 2'b01) | (x[9:8] == 2'b10) | (state == `WIDTHMAX)); 
     wire y_valid = ~y[9];
     
     //bound_valid is what is making sure that the y value is withing the range
     //to display a pixel
     wire bound_valid = ((y[8:1] >= prev_val) & (y[8:1] <= read_value_adjusted)) | 
-                       ((y[8:1] <= prev_val) & (y[8:1] >= read_value_adjusted));
+                       ((y[8:1] <= prev_val) & (y[8:1] >= read_value_adjusted)); 
     
+    //this logic is to cutoff the vertical bars
+    wire left_valid = (state==`WIDTHMAX)? 1'b1: (x >= 11'b00100000010);
+    wire right_valid = (state==`WIDTHMAX)? 1'b1: (x <= 11'b01011111100);
+
     //is the combination of all the checks to ensure a the display will display the sin wave              
-    assign valid_pixel = x_valid & y_valid & bound_valid & valid /*&
-                         x >= 11'b00100000010 & x <= 11'b01011111100*/;//**testing to see if x_valid still allows full screen
+    assign valid_pixel = x_valid & y_valid & bound_valid & valid &
+                         (left_valid ) & (right_valid );
                          
     assign {r, g, b} = valid_pixel ? {3{8'hFF}} : {3{8'b0}};
-    
-    //Here make the mux to choose diffrent button presses
-    //actually it might be better to use switches
     
     //FSM to go through the diffrent possible states of the display
     dffr #(3) global_state(.d(next_state), .q(state), .r(reset), .clk(clk));
@@ -74,12 +74,10 @@ module wave_display (
             `NORMAL: read_value_adjusted = (read_value >> 1)+ 8'd32;
             `HALF: read_value_adjusted = (read_value >> 2)+ 8'd32;
             `QUARTER:read_value_adjusted = (read_value >> 3)+ 8'd32;
-            `HEIGHTMAX: read_value_adjusted = read_value << 1;//double check this one, might just be better to bit shift it left
-            `WIDTHMAX: read_value_adjusted = (read_value >> 1)+ 8'd32; // this is paired with x_valid being true when state == WIDTHMAX
+            `HEIGHTMAX: read_value_adjusted = read_value;
+            `WIDTHMAX: read_value_adjusted = (read_value >> 1)+ 8'd32 ; // this is paired with x_valid being true when state == WIDTHMAX
             
             default: read_value_adjusted = (read_value >> 1)+ 8'd32;
         endcase
-     end
-        
-                       
+     end                 
 endmodule
