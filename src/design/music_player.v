@@ -25,7 +25,7 @@ module music_player(
 
     output wire [5:0] prev_note,  // The previous note played (for note display module)
     output wire [5:0] note,       // The current note being played (for note display module)
-
+    
     // Our final output sample to the codec. This needs to be synced to
     // new_frame.
     output wire [15:0] sample_out
@@ -90,7 +90,7 @@ module music_player(
     wire generate_next_sample, generate_next_sample0;
     wire [15:0] note_sample, note_sample0;
     wire note_sample_ready, note_sample_ready0;
-
+    
     // for note display module
     wire [5:0] prev_note;
     wire [5:0] note;
