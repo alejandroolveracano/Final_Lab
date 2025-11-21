@@ -9,8 +9,8 @@ module note_player(
     input beat,  // This is our 1/48th second beat
     input generate_next_sample,  // Tells us when the codec wants a new sample
     output [15:0] sample_out,  // Our sample output
-    output new_sample_ready  // Tells the codec when we've got a sample
-    output [5:0] prev_note  // The previous note played (for note display module)****************
+    output new_sample_ready,  // Tells the codec when we've got a sample
+    output [5:0] prev_note,  // The previous note played (for note display module)****************
     output [5:0] note  // The current note being played (for note display module)
 );
 
