@@ -28,6 +28,7 @@ module note_rom (
 always @(*) begin
     // empty always block
     case (note)
+        6'd0: {num_addr, letter_addr, symbol_addr} = {`SYMBOL_SPACE, `SYMBOL_SPACE, `SYMBOL_SPACE}; // rest
         6'd1: {num_addr, letter_addr, symbol_addr} = {`NUMBER_1, `LETTER_A, `SYMBOL_SPACE};
         6'd2: {num_addr, letter_addr, symbol_addr} = {`NUMBER_1, `LETTER_A, `SYMBOL_HASH};
         6'd3: {num_addr, letter_addr, symbol_addr} = {`NUMBER_1, `LETTER_B, `SYMBOL_SPACE};

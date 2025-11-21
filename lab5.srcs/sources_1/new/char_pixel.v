@@ -26,9 +26,6 @@ module char_pixel(
     output valid_px
     );
     
-
-
-
 wire x_valid = (vga_x[9:8] == 2'b01) | (vga_x[9:8] == 2'b10); // verifies in correct quadrant
 wire y_valid = ~vga_y[10];                                    // within range of y-direction
 
@@ -39,8 +36,19 @@ wire y_bound = (vga_y >= char_y) & (vga_y <= (char_y + 11'd8));
 // address registers (first addr of char groups in tcgrom)
 wire [8:0] addr;
 wire [8:0] next_addr;
-wire addr_en = y_bound & (vga_x[2:0] == 3'd7); // vga_x or char_x???
-dffre #(9) addr_reg(.clk(clk), .r(reset), .en(addr_en), .d(next_addr), .q(addr));
+//wire addr_en = y_bound & (vga_x[2:0] == 3'd7); // vga_x or char_x???
+dffr #(9) addr_reg(.clk(clk), .r(reset), .d(next_addr), .q(addr));
+
+// extract data from tcgrom based on addr
+wire [7:0] data;
+tcgrom char_rom (.addr(addr), .data(data));
+
+// wire array
+wire [7:0] data_array [0:8];
+
+always @(posedge clk) begin
+    data_array[addr - init_addr] <= data;
+end
 
 // checks within range of character address in tcgrom
 wire addr_range = (init_addr <= addr) & (addr <= (init_addr + 9'd8));
@@ -48,13 +56,17 @@ wire addr_range = (init_addr <= addr) & (addr <= (init_addr + 9'd8));
 // increments through char addr in tcgrom
 assign next_addr = addr_range ? addr + 1 : init_addr;
 
-// extract data from tcgrom based on addr
-wire [7:0] data;
-tcgrom char_rom (.addr(addr), .data(data));
-
 // bit selects parts of the row of data, depending on vga_x
-wire bit_select = 8'b1000_0000 >> vga_x[2:0];
-wire add_pixel = |(data & bit_select);
+reg [7:0] bit_select = 8'b1000_0000 >> vga_x[2:0];     // just fixed this bit select
+reg add_pixel;
+always @(*) begin
+    if(y_bound) begin
+        add_pixel= |(data_array[vga_y-char_y] & bit_select);
+    end
+    else begin
+        add_pixel = 1'b0;
+    end
+end
 
 // checks if pixel is valid
 assign valid_px = (x_bound &
