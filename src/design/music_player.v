@@ -91,9 +91,7 @@ module music_player(
     wire [15:0] note_sample, note_sample0;
     wire note_sample_ready, note_sample_ready0;
     
-    // for note display module
-    wire [5:0] prev_note;
-    wire [5:0] note;
+
 
     // These pipeline registers were added to decrease the length of the critical path!
     dffr pipeline_ff_gen_next_sample (.clk(clk), .r(reset), .d(generate_next_sample0), .q(generate_next_sample));
