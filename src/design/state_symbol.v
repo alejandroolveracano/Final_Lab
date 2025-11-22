@@ -10,12 +10,12 @@
 `define PLAY_STATE   2'b01
 `define CHANGE_STATE 2'b10
 
-`define PAUSE_ADDR   9'h208     // addresses found in tcgrom for symbols
-`define PLAY_ADDR    9'h200
-`define CHANGE_ADDR  9'h210
+`define PAUSE_ADDR   9'h008     // addresses found in tcgrom for symbols
+`define PLAY_ADDR    9'h000
+`define CHANGE_ADDR  9'h010
 
-`define CHAR_X_COORD 11'd800    // x coordinate for symbol display
-`define CHAR_Y_COORD 10'd400    // y coordinate for symbol display
+`define CHAR_X_COORD 11'd400    // x coordinate for symbol display
+`define CHAR_Y_COORD 10'd200    // y coordinate for symbol display
 
 module state_symbol(
     input clk,
@@ -30,7 +30,7 @@ module state_symbol(
     output valid_px
 );
 
-reg [1:0] state_addr;
+reg [8:0] state_addr;
 
 always @(*) begin
     case(state)
@@ -57,6 +57,7 @@ char_pixel state_char_pixel(
     .color(24'h00FFFF), // cyan color for symbol
     .vga_x(vga_x),
     .vga_y(vga_y),
+    .is_state(1'b1),
     .char_x(`CHAR_X_COORD),
     .char_y(`CHAR_Y_COORD),
     .r(r),
