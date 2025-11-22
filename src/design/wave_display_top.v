@@ -83,7 +83,7 @@ module wave_display_top(
     note_display np1_curr_note(
         .clk(clk),
         .reset(reset),
-        .note(prev_note),
+        .note(note),
         .num_x(11'd100),  // shift right by 100 pixels
         .num_y(10'd480),
         .letter_x(11'd108),
