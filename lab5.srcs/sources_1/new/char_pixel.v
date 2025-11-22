@@ -20,6 +20,7 @@ module char_pixel(
     input [9:0] char_y,
     input [23:0] color,
     input valid,
+    input is_state,
     output [7:0] r,
     output [7:0] g,
     output [7:0] b,
@@ -40,30 +41,35 @@ wire [8:0] next_addr;
 dffr #(9) addr_reg(.clk(clk), .r(reset), .d(next_addr), .q(addr));
 
 // extract data from tcgrom based on addr
-wire [7:0] data;
-tcgrom char_rom (.addr(addr), .data(data));
+wire [7:0] data_state;
+statetcgrom char1_rom (.addr(addr), .data(data_state));
+wire [7:0] data_char;
+tcgrom char2_rom (.addr(addr), .data(data_char));
+wire [7:0] data = is_state ? data_state : data_char;
 
 // wire array
-wire [7:0] data_array [0:8];
+reg [7:0] data_array [0:8];
 
 always @(posedge clk) begin
     data_array[addr - init_addr] <= data;
 end
 
 // checks within range of character address in tcgrom
-wire addr_range = (init_addr <= addr) & (addr <= (init_addr + 9'd8));
+wire addr_range = (init_addr <= addr) & (addr < (init_addr + 9'd7));
 
 // increments through char addr in tcgrom
 assign next_addr = addr_range ? addr + 1 : init_addr;
 
 // bit selects parts of the row of data, depending on vga_x
-reg [7:0] bit_select = 8'b1000_0000 >> vga_x[2:0];     // just fixed this bit select
+reg [7:0] bit_select;
 reg add_pixel;
 always @(*) begin
     if(y_bound) begin
-        add_pixel= |(data_array[vga_y-char_y] & bit_select);
+        bit_select = 8'b1000_0000 >> vga_x[2:0];
+        add_pixel = |(data_array[vga_y-char_y] & bit_select);
     end
     else begin
+        bit_select = 8'd0;
         add_pixel = 1'b0;
     end
 end
