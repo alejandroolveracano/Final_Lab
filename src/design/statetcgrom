@@ -1,0 +1,41 @@
+// This module is just a big ROM which allows you to look up the bitmap
+//  for a given character.
+
+module statetcgrom(
+    input [8:0] addr,
+    output reg [7:0] data
+);
+    // A memory is implemented using a case statement 
+    always @(addr)
+        case (addr)
+        
+            9'h000: data = 8'b00110000; // %    **        %     PLAY
+            9'h001: data = 8'b00111000; // %    ***       %
+            9'h002: data = 8'b00111100; // %    ****      %
+            9'h003: data = 8'b00111110; // %    *****     %
+            9'h004: data = 8'b00111110; // %    *****     %
+            9'h005: data = 8'b00111100; // %    ****      %
+            9'h006: data = 8'b00111000; // %    ***       %
+            9'h007: data = 8'b00110000; // %    **        %
+
+            9'h008: data = 8'b01100110; // %   **   **    %     PAUSE
+            9'h009: data = 8'b01100110; // %   **   **    %
+            9'h00A: data = 8'b01100110; // %   **   **    %
+            9'h00B: data = 8'b01100110; // %   **   **    %
+            9'h00C: data = 8'b01100110; // %   **   **    %
+            9'h00D: data = 8'b01100110; // %   **   **    %
+            9'h00E: data = 8'b01100110; // %   **   **    %
+            9'h00F: data = 8'b01100110; // %   **   **    %
+
+
+            9'h010: data = 8'b00100011; // %    *   **    %     NEXT
+            9'h011: data = 8'b00110011; // %    **  **    %
+            9'h012: data = 8'b00111011; // %    *** **    %
+            9'h013: data = 8'b00111111; // %    ******    %
+            9'h014: data = 8'b00111111; // %    ******    %
+            9'h015: data = 8'b00111011; // %    *** **    %
+            9'h016: data = 8'b00110011; // %    **  **    %
+            9'h017: data = 8'b00100011; // %    *   **    %  
+        endcase
+
+endmodule
